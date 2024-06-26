@@ -1,19 +1,24 @@
 {
-  "name": "typescript-boilerplate",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^20.12.7",
-    "dotenv": "^16.4.5",
-    "prettier": "^3.2.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
-  }
+    "name": "typescript-boilerplate",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "cross-env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 10000 -r ts-node/register 'tests/**/*.ts'"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^20.12.7",
+        "@types/chai": "^4.3.16",
+        "@types/mocha": "^10.0.6",
+        "dotenv": "^16.4.5",
+        "chai": "4.4.1",
+        "cross-env": "^7.0.3",
+        "mocha": "^10.4.0",
+        "prettier": "^3.2.5",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.5"
+    }
 }
