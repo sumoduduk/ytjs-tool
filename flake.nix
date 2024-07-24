@@ -28,7 +28,6 @@
         devShell = pkgs.mkShell {
           buildInputs = [
             nodejs
-            pkgs.bun
             pkgs.nodePackages.typescript
             pkgs.nodePackages.prettier
           ];
