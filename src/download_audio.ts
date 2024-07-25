@@ -34,7 +34,7 @@ function streamToFile(stream: Readable, filePath: string) {
     });
 }
 
-export async function youtubeDownloader(link: string, id: string) {
+async function youtubeDownloader(link: string, id: string) {
     try {
         const info = await ytdl.getInfo(link);
 
@@ -50,5 +50,17 @@ export async function youtubeDownloader(link: string, id: string) {
             status: false,
             message: err.message,
         };
+    }
+}
+
+export async function download_audio(link: string, id: string) {
+    try {
+        let path_music = await youtubeDownloader(link, id);
+
+        if (typeof path_music == 'string') {
+            console.log(path_music);
+        }
+    } catch (error) {
+        console.log(error);
     }
 }
