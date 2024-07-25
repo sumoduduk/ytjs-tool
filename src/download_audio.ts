@@ -1,10 +1,12 @@
-import ytdl, { filterFormats, videoInfo } from '@distube/ytdl-core';
+import ytdl, { videoInfo } from '@distube/ytdl-core';
 import path from 'path';
 import { Readable } from 'stream';
 import fs from 'fs';
 // import fsPromises from 'fs/promises';
 import { filterAudio } from './filter_audio';
 import { getRandomIPv6 } from '@distube/ytdl-core/lib/utils';
+import { checkIfFileExists } from './util';
+import { convertCodec } from './convert';
 
 async function downloadAudioOnly(
     info: videoInfo,
@@ -13,6 +15,8 @@ async function downloadAudioOnly(
     // videoDetails: MoreVideoDetails,
     // thumb: string,
 ) {
+    const tempMp3 = path.join('music', `${id}.${extentions}`);
+    if (checkIfFileExists(tempMp3)) return;
     const agentForAnotherRandomIP = ytdl.createAgent(undefined, {
         localAddress: getRandomIPv6('2001:2::/48'),
     });
@@ -22,12 +26,14 @@ async function downloadAudioOnly(
         agent: agentForAnotherRandomIP,
     });
 
-    const tempMp3 = path.join('music', `${id}.${extentions}`);
-
-    console.log('Downloading audio...');
     // await streamToFile(audioStream, tempMp3);
-    audioStream.pipe(fs.createWriteStream(tempMp3));
-    console.log('Audio download complete.');
+    const write_stream = audioStream.pipe(fs.createWriteStream(tempMp3));
+
+    write_stream.on('finish', () => {
+        console.log('Audio download complete.');
+
+        convertCodec(id);
+    });
 
     return tempMp3;
 }
