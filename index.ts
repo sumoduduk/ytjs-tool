@@ -1,10 +1,7 @@
 import http, { ServerResponse } from 'http';
-import { filterAudio } from './src/filter_audio';
-import { getInfoFormats } from './src/get_video_info';
+import { serveFilteredFormat } from './src/serve_format';
 
-const URL = 'http://www.youtube.com/watch?v=';
-
-const not_found = (res: ServerResponse) => {
+export const not_found = (res: ServerResponse) => {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Page Not Found');
 };
@@ -26,18 +23,7 @@ const server = http.createServer(async (req, res) => {
 
         default:
             if (!url) return not_found(res);
-            const id = url.split('/')[1];
-
-            if (id.length === 0) return not_found(res);
-
-            const formats = await getInfoFormats(URL + id);
-            if (!formats) return not_found(res);
-
-            let filtered = filterAudio(formats);
-            if (!filtered) return not_found(res);
-
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(filtered));
+            serveFilteredFormat(url, res);
     }
 });
 
