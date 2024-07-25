@@ -1,26 +1,34 @@
-import ytdl, { videoInfo } from '@distube/ytdl-core';
+import ytdl, { filterFormats, videoInfo } from '@distube/ytdl-core';
 import path from 'path';
 import { Readable } from 'stream';
 import fs from 'fs';
-import fsPromises from 'fs/promises';
+// import fsPromises from 'fs/promises';
+import { filterAudio } from './filter_audio';
+import { getRandomIPv6 } from '@distube/ytdl-core/lib/utils';
 
 async function downloadAudioOnly(
     info: videoInfo,
     id: string,
+    extentions: string,
     // videoDetails: MoreVideoDetails,
     // thumb: string,
 ) {
-    const audioStream = ytdl.downloadFromInfo(info, {
-        quality: 'highestaudio',
+    const agentForAnotherRandomIP = ytdl.createAgent(undefined, {
+        localAddress: getRandomIPv6('2001:2::/48'),
     });
 
-    const tempMp3 = path.join('music', `${id}.webm`);
+    const audioStream = ytdl.downloadFromInfo(info, {
+        quality: 'highestaudio',
+        agent: agentForAnotherRandomIP,
+    });
+
+    const tempMp3 = path.join('music', `${id}.${extentions}`);
 
     console.log('Downloading audio...');
-    await streamToFile(audioStream, tempMp3);
+    // await streamToFile(audioStream, tempMp3);
+    audioStream.pipe(fs.createWriteStream(tempMp3));
     console.log('Audio download complete.');
 
-    await fsPromises.unlink(tempMp3);
     return tempMp3;
 }
 
@@ -31,19 +39,33 @@ function streamToFile(stream: Readable, filePath: string) {
         stream.on('end', resolve);
         stream.on('error', reject);
         writeStream.on('error', reject);
+        writeStream.on('finish', resolve);
     });
 }
 
 async function youtubeDownloader(link: string, id: string) {
     try {
-        const info = await ytdl.getInfo(link);
+        const agentForAnotherRandomIP = ytdl.createAgent(undefined, {
+            localAddress: getRandomIPv6('2001:2::/48'),
+        });
+
+        let info = await ytdl.getInfo(link, {
+            agent: agentForAnotherRandomIP,
+        });
+
+        let extentions = 'webm';
+
+        const format_higest = filterAudio(info.formats);
+        if (format_higest) {
+            extentions = format_higest.container;
+        }
 
         // const videoDetails = info.videoDetails;
         // const thumb =
         //     info.player_response.microformat.playerMicroformatRenderer.thumbnail
         //         .thumbnails[0].url;
 
-        return await downloadAudioOnly(info, id);
+        return await downloadAudioOnly(info, id, extentions);
     } catch (err: any) {
         console.error('Youtube Downloader Error:\n', err);
         return {
