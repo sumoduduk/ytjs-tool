@@ -1,12 +1,6 @@
 import { expect } from 'chai';
-import fs from 'fs';
-import { videoFormat } from '../src/interfacce';
 import { filterAudio } from '../src/filter_audio';
-
-function loadVideoFormat() {
-    let data = fs.readFileSync('assets/videoFormat.json', 'utf8');
-    return JSON.parse(data) as Array<videoFormat>;
-}
+import { loadVideoFormat } from '../src/util';
 
 describe('filtter audio test', () => {
     it('will filter fot the best audio', () => {
