@@ -1,21 +1,47 @@
-import { exit } from 'process';
-import { getInfo } from './src/get_video_info';
+import http, { ServerResponse } from 'http';
+import { filterAudio } from './src/filter_audio';
+import { getInfoFormats } from './src/get_video_info';
 
-const args = Bun.argv;
+const URL = 'http://www.youtube.com/watch?v=';
 
-if (args.length < 3) {
-    console.log('provide id');
-    exit();
-}
+const not_found = (res: ServerResponse) => {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Page Not Found');
+};
 
-let id = args[2];
-let url = 'http://www.youtube.com/watch?v=';
+const server = http.createServer(async (req, res) => {
+    const url = req.url;
 
-async function begin() {
-    if (!id) return console.log('NO ID');
-    let link = url + id;
+    switch (url) {
+        case '/':
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('Welcome');
+            break;
 
-    await getInfo(link);
-}
+        case '/about':
+            console.log(url);
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('This is about');
+            break;
 
-begin();
+        default:
+            if (!url) return not_found(res);
+            const id = url.split('/')[1];
+
+            if (id.length === 0) return not_found(res);
+
+            const formats = await getInfoFormats(URL + id);
+            if (!formats) return not_found(res);
+
+            let filtered = filterAudio(formats);
+            if (!filtered) return not_found(res);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(filtered));
+    }
+});
+
+const PORT = 6969;
+server.listen(PORT, () => {
+    console.log('Server Listen for port = ' + PORT);
+});
