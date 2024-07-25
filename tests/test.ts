@@ -7,8 +7,6 @@ describe('filtter audio test', () => {
         let formats = loadVideoFormat();
         let format = filterAudio(formats);
 
-        console.log(format);
-
         expect(format?.hasAudio).to.eq(true);
         expect(format?.hasVideo).to.eq(false);
     });
