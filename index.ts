@@ -1,21 +1,21 @@
-import { youtubeDownloader } from './src/download_audio';
+import { exit } from 'process';
+import { getInfo } from './src/get_video_info';
 
-let id = '0yBnIUX0QAE';
-let url = 'http://www.youtube.com/watch?v=';
+const args = Bun.argv;
 
-let link = url + id;
-console.log(link);
-
-async function download() {
-    try {
-        let path_music = await youtubeDownloader(link, id);
-
-        if (typeof path_music == 'string') {
-            console.log(path_music);
-        }
-    } catch (error) {
-        console.log(error);
-    }
+if (args.length < 3) {
+    console.log('provide id');
+    exit();
 }
 
-download();
+let id = args[2];
+let url = 'http://www.youtube.com/watch?v=';
+
+async function begin() {
+    if (!id) return console.log('NO ID');
+    let link = url + id;
+
+    await getInfo(link);
+}
+
+begin();
