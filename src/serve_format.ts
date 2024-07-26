@@ -1,10 +1,20 @@
 import { ServerResponse } from 'http';
-import { not_found, URI } from '..';
+import { not_found, SOCKET_URL, URI } from '..';
 
 import { filterAudio } from './filter_audio';
 import { getInfoFormats } from './get_video_info';
 import { download_audio } from './download_audio';
 import { Socket } from 'socket.io-client';
+
+import { IDownloadData } from './interfacce';
+import { downloadPlain } from './download_plain';
+import { wait } from './util';
+
+interface IData {
+    message: string;
+    url: string;
+    file_path: string;
+}
 
 export async function serveFilteredFormat(
     url: string,
@@ -47,10 +57,45 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
     const id = url.split('/')[2];
     if (id.length == 0) return not_found(res);
     const uri_video = URI + id;
-    console.log(uri_video);
+
+    let data: IData = {
+        message: 'failed',
+        url: uri_video,
+        file_path: 'failed download',
+    };
+
+    let json_data: typeof data | undefined = undefined;
+
+    const startTime = Date.now();
 
     socket.emit('download-video', uri_video, 'highestvideo');
 
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Event emitted!');
+    socket.on('download-complete', async function (data) {
+        console.log('Ready to Download');
+        const payload = data as IDownloadData;
+        console.log('payload', payload);
+
+        const finished_name = payload.FinishedName;
+        const uri = SOCKET_URL + `download?url=${finished_name}`;
+        let data_download = await downloadPlain(uri);
+
+        if (!data_download) {
+            json_data = data;
+        } else {
+            data.message = data_download.downloadStatus;
+            data.file_path = data_download.filePath;
+        }
+    });
+
+    while (typeof json_data == undefined) {
+        if (Date.now() - startTime > 300000) {
+            json_data = data;
+        }
+
+        await wait(300);
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+
+    res.end(JSON.stringify(json_data));
 }
