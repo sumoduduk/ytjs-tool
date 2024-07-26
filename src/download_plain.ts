@@ -8,6 +8,7 @@ export async function downloadPlain(url: string) {
     try {
         const report = await downloader.download();
         console.log('Download Complete', report);
+        return report;
     } catch (error) {
         console.log('Download plain error', error);
     }
