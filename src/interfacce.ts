@@ -74,3 +74,10 @@ export interface videoFormat {
     isHLS: boolean;
     isDashMPD: boolean;
 }
+
+export interface IDownloadData {
+    filename: string;
+    thumbnail: string;
+    title: string;
+    FinishedName: string;
+}

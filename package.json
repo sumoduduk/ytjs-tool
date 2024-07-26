@@ -1,5 +1,5 @@
 {
-    "name": "typescript-boilerplate",
+    "name": "ytjs-tool",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -23,6 +23,8 @@
         "typescript": "^5.4.5"
     },
     "dependencies": {
-        "@distube/ytdl-core": "^4.13.5"
+        "@distube/ytdl-core": "^4.13.5",
+        "nodejs-file-downloader": "^4.13.0",
+        "socket.io-client": "^4.7.5"
     }
 }
