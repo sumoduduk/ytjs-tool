@@ -4,6 +4,8 @@ import { Readable } from 'stream';
 import fs from 'fs';
 // import fsPromises from 'fs/promises';
 import { filterAudio } from './filter_audio';
+
+// @ts-ignore
 import { getRandomIPv6 } from '@distube/ytdl-core/lib/utils';
 import { checkIfFileExists } from './util';
 import { convertCodec } from './convert';
