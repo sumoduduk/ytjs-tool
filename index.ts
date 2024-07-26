@@ -1,26 +1,18 @@
 import http, { ServerResponse } from 'http';
 import { serveFilteredFormat } from './src/serve_format';
 import { io } from 'socket.io-client';
-import { IDownloadData } from './src/interfacce';
-import { downloadPlain } from './src/download_plain';
+import * as dotenv from 'dotenv';
 
-export const URI = 'http://www.youtube.com/watch?v=';
-const DownloadURI = 'https://yasifys.vmgware.dev/';
+dotenv.config();
 
-const socket = io('https://yasifys.vmgware.dev/');
+export const URI = process.env.URI as string;
+
+export const SOCKET_URL = process.env.SOCKET_URL as string;
+
+const socket = io(SOCKET_URL);
 
 socket.on('connect', () => {
     console.log('Client connected to server YT');
-});
-
-socket.on('download-complete', async function (data) {
-    console.log('Ready to Download');
-    const payload = data as IDownloadData;
-    console.log('payload', payload);
-
-    const finished_name = payload.FinishedName;
-    const uri = DownloadURI + `download?url=${finished_name}`;
-    await downloadPlain(uri);
 });
 
 export const not_found = (res: ServerResponse) => {
