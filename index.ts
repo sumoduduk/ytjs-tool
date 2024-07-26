@@ -1,19 +1,18 @@
 import http, { ServerResponse } from 'http';
 import { serveFilteredFormat } from './src/serve_format';
-import { io } from 'socket.io-client';
 import * as dotenv from 'dotenv';
+import { io } from 'socket.io-client';
 
 dotenv.config();
 
-export const URI = process.env.URI as string;
-
 export const SOCKET_URL = process.env.SOCKET_URL as string;
-
 const socket = io(SOCKET_URL);
 
 socket.on('connect', () => {
     console.log('Client connected to server YT');
 });
+
+export const URI = process.env.URI as string;
 
 export const not_found = (res: ServerResponse) => {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
