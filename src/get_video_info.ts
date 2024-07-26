@@ -1,6 +1,6 @@
 import ytdl from '@distube/ytdl-core';
 // @ts-ignore
-import { getRandomIPv6 } from '@distube/ytdl-core';
+import { getRandomIPv6 } from '@distube/ytdl-core/lib/utils';
 
 export async function getInfoFormats(link: string) {
     try {
