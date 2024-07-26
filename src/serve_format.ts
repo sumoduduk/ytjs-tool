@@ -4,16 +4,16 @@ import { not_found, SOCKET_URL, URI } from '..';
 import { filterAudio } from './filter_audio';
 import { getInfoFormats } from './get_video_info';
 import { download_audio } from './download_audio';
-import { Socket } from 'socket.io-client';
 
 import { IDownloadData } from './interfacce';
 import { downloadPlain } from './download_plain';
 import { wait } from './util';
+import { Socket } from 'socket.io-client';
 
 interface IData {
     message: string;
     url: string;
-    file_path: string;
+    file_path: string | null;
 }
 
 export async function serveFilteredFormat(
@@ -58,42 +58,50 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
     if (id.length == 0) return not_found(res);
     const uri_video = URI + id;
 
-    let data: IData = {
+    let data_before: IData = {
         message: 'failed',
         url: uri_video,
-        file_path: 'failed download',
+        file_path: null,
     };
 
-    let json_data: typeof data | undefined = undefined;
+    let json_data: IData | undefined = undefined;
 
     const startTime = Date.now();
 
     socket.emit('download-video', uri_video, 'highestvideo');
 
     socket.on('download-complete', async function (data) {
-        console.log('Ready to Download');
         const payload = data as IDownloadData;
-        console.log('payload', payload);
 
         const finished_name = payload.FinishedName;
-        const uri = SOCKET_URL + `download?url=${finished_name}`;
-        let data_download = await downloadPlain(uri);
+        if (finished_name.includes(id)) {
+            console.log('payload', payload);
+            console.log('Ready to Download');
+            const uri = SOCKET_URL + `download?url=${finished_name}`;
+            wait(1500);
+            let data_download = await downloadPlain(uri);
 
-        if (!data_download) {
-            json_data = data;
-        } else {
-            data.message = data_download.downloadStatus;
-            data.file_path = data_download.filePath;
+            if (!data_download) {
+                json_data = data_before;
+            } else {
+                data_before.message = data_download.downloadStatus;
+                data_before.file_path = data_download.filePath;
+                json_data = data_before;
+            }
         }
     });
 
-    while (typeof json_data == undefined) {
+    while (json_data == undefined) {
         if (Date.now() - startTime > 300000) {
-            json_data = data;
+            json_data = data_before;
         }
 
         await wait(300);
     }
+
+    socket.on('disconnect', () => {
+        console.log('disconnected from YT');
+    });
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
 
