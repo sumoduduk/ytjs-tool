@@ -2,10 +2,13 @@ import { Downloader } from 'nodejs-file-downloader';
 
 import { get_randIP } from './get_rand';
 
-export async function downloadPlain(url: string) {
+export async function downloadPlain(url: string, id: string) {
+    let fileName = id + '.mp4';
     const downloader = new Downloader({
         url: url,
         directory: './music',
+        skipExistingFileName: true,
+        fileName,
     });
     try {
         const report = await downloader.download();
