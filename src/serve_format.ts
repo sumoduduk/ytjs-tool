@@ -58,6 +58,8 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
     if (id.length == 0) return not_found(res);
     const uri_video = URI + id;
 
+    console.log('download now: ', uri_video);
+
     let data_before: IData = {
         message: 'failed',
         url: uri_video,
@@ -68,7 +70,7 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
 
     const startTime = Date.now();
 
-    socket.emit('download-video', uri_video, 'highestvideo');
+    socket.emit('download-video', uri_video, 'highestaudio');
 
     socket.on('download-complete', async function (data) {
         const payload = data as IDownloadData;
@@ -79,7 +81,7 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
             console.log('Ready to Download');
             const uri = SOCKET_URL + `download?url=${finished_name}`;
             wait(1500);
-            let data_download = await downloadPlain(uri);
+            let data_download = await downloadPlain(uri, id);
 
             if (!data_download) {
                 json_data = data_before;
@@ -89,6 +91,11 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
                 json_data = data_before;
             }
         }
+    });
+
+    socket.on('download-error', function (data) {
+        console.log('error download : ', data);
+        json_data = data_before;
     });
 
     while (json_data == undefined) {
@@ -101,6 +108,7 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
 
     socket.on('disconnect', () => {
         console.log('disconnected from YT');
+        socket.connect();
     });
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
