@@ -8,6 +8,8 @@ dotenv.config();
 export const SOCKET_URL = process.env.SOCKET_URL as string;
 const socket = io(SOCKET_URL);
 
+export const DOWNLOAD_PATH = process.env.PATH_FOLDER as string;
+
 socket.on('connect', () => {
     console.log('Client connected to server YT');
 });
