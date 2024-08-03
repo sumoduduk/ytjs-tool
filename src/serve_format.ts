@@ -7,11 +7,13 @@ import { download_audio } from './download_audio';
 
 import { IDownloadData } from './interfacce';
 import { downloadPlain } from './download_plain';
-import { wait } from './util';
+import { getInOutFileMp3, wait } from './util';
 import { Socket } from 'socket.io-client';
+import { convertCodec } from './convert';
 
 interface IData {
     message: string;
+    image_url: string | null;
     url: string;
     file_path: string | null;
 }
@@ -62,6 +64,7 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
 
     let data_before: IData = {
         message: 'failed',
+        image_url: null,
         url: uri_video,
         file_path: null,
     };
@@ -88,18 +91,18 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
             } else {
                 data_before.message = data_download.downloadStatus;
                 data_before.file_path = data_download.filePath;
+                data_before.image_url = payload.thumbnail;
                 json_data = data_before;
             }
         }
     });
 
-    socket.on('download-error', function (data) {
+    socket.once('download-error', function (data) {
         console.log('error download : ', data);
-        json_data = data_before;
     });
 
     while (json_data == undefined) {
-        if (Date.now() - startTime > 300000) {
+        if (Date.now() - startTime > 120000) {
             json_data = data_before;
         }
 
@@ -111,7 +114,22 @@ async function sendCase(url: string, res: ServerResponse, socket: Socket) {
         socket.connect();
     });
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    try {
+        if (json_data.file_path == null) throw Error();
 
-    res.end(JSON.stringify(json_data));
+        let path_name = json_data.file_path;
+
+        let { in_file, out_file } = getInOutFileMp3(path_name);
+
+        let success = await convertCodec(in_file, out_file);
+        if (!success) throw Error();
+
+        json_data.file_path = out_file;
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+    } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+    } finally {
+        res.end(JSON.stringify(json_data));
+    }
 }
